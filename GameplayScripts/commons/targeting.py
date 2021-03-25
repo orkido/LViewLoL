@@ -1,3 +1,4 @@
+from lview import *
 from enum import Enum
 
 class Target(Enum):
@@ -43,8 +44,19 @@ class TargetingConfig:
 		target = None
 		min = 99999999
 		for obj in array:
-			
-			if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius) > range:
+			range_calc = (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius)
+			soldier_radius = 315
+			for soldier_obj in game.others:
+				if not soldier_obj.is_alive or soldier_obj.is_enemy_to(game.player):
+					continue
+				
+				if soldier_obj.has_tags(UnitTag.Unit_Special_AzirW):
+					if game.distance(game.player, obj) > (range + soldier_radius):
+						continue
+					
+					range_calc = (game.distance(soldier_obj, obj) - soldier_obj.gameplay_radius - obj.gameplay_radius)
+						
+			if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or range_calc > (range + soldier_radius):
 				continue
 				
 			val = value_extractor(game.player, obj)
