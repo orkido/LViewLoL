@@ -25,7 +25,7 @@ targeting = TargetingConfig()
 
 soldiers = {
 	#Name -> (radius, show_radius_circle, show_radius_circle_minimap, icon)                      
-	'azirsoldier'          : [375, True,  False, "azir_w"]
+	'azirsoldier'          : [310, True,  False, "azir_w"]
 }
 
 
@@ -76,11 +76,11 @@ def find_minion_target(game):
 	
 def find_soldier_minion_target(game, soldier_obj):
 	soldier_affect_range = 660
-	soldier_radius = 375
+	soldier_radius = 310
 	min_health = 9999999999
 	soldier_target = None
 	for minion in game.minions:
-		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < soldier_affect_range + soldier_radius and game.distance(soldier_obj, minion) < soldier_radius and skills.is_last_hitable(game, game.player, minion):
+		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < soldier_affect_range + soldier_radius and skills.is_last_hitable(game, game.player, minion):
 			soldier_target = minion
 			min_health = minion.health
 		
@@ -94,7 +94,7 @@ def get_target(game):
 	
 	if not target and auto_last_hit:
 		for obj in game.others:
-			if not obj.is_alive or obj.is_ally_to(game.player):
+			if not obj.is_alive or obj.is_enemy_to(game.player):
 				continue
 			
 			if obj.has_tags(UnitTag.Unit_Special_AzirW):
