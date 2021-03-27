@@ -1,3 +1,6 @@
+# Fork Details
+!!! IMPORTANT !!! This uses VS2019 and the mvc142 toolkit, please be sure your environment matches this configuration before attempting to build, and ofcourse you will still need to follow the steps outlined for the original project. Orkido on UC has documented much of what you need to do in order to get the project building from VS2019 so if you have trouble please search the LView thread for his comments on the matter.
+
 # LViewLoL
 !!! IMPORTANT !!! I've noticed riot already has taken notice of this project and they have implemented a few signatures for detecting this. Don't use this as it is, if you know what you are doing you will have a clue what to modify to avoid detection. Also careful if you want to copy paste code from here to an internal it seems riot has taken an extra step in making some code signatures.
 
