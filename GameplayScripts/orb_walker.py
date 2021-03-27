@@ -80,7 +80,7 @@ def find_soldier_minion_target(game, soldier_obj):
 	min_health = 9999999999
 	soldier_target = None
 	for minion in game.minions:
-		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < soldier_affect_range + soldier_radius and skills.is_last_hitable(game, game.player, minion):
+		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < soldier_affect_range + soldier_radius and game.distance(soldier_obj, minion) < soldier_radius and skills.is_last_hitable(game, game.player, minion):
 			soldier_target = minion
 			min_health = minion.health
 		
@@ -98,9 +98,10 @@ def get_target(game):
 				continue
 			
 			if obj.has_tags(UnitTag.Unit_Special_AzirW):
-				return find_soldier_minion_target(game, obj)
+				target = find_soldier_minion_target(game, obj)
 	
-		return find_minion_target(game)
+		if not target:
+			target = find_minion_target(game)
 	
 	return target
 
@@ -141,8 +142,8 @@ def lview_update(game, ui):
 	self = game.player
 	
 	atk_speed = self.base_atk_speed * self.atk_speed_multi
-	b_windup_time = (1.0/self.base_atk_speed)*game.player.basic_atk_windup
-	c_atk_time = (1.0/atk_speed)+0.10
+	b_windup_time = ((1.0/self.base_atk_speed)*game.player.basic_atk_windup)
+	c_atk_time = (1.0/atk_speed)
 	max_atk_time = 1.0/max_atk_speed
 
 	target = get_target(game)

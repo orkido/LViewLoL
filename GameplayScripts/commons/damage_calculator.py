@@ -16,7 +16,7 @@ class DamageSpecification:
 
     # Damage is increased by up to missing_health_multiplier based on missing enemy health. Maximum if enemy health is below missing_health_max_multiplier
     missing_health_scale_multiplier = 0.0
-    missing_health_max_scale_multiplier = 0.33
+    missing_health_max_scale_multiplier = 1.0
 
     # Damage increased by missing_health_multiplier * enemy_missing_health
     missing_health_multiplier = 0.0
@@ -62,7 +62,7 @@ class DamageSpecification:
             damage_multiplier = 2.0 - 100.0 / (100.0 - resistance_value)
         
 		# BB: Temp workaround until we figure out wtf is wrong with last hitting - works well on Azir
-        damage_multiplier = 100/(100+(resistance_value*0.82))
+        #damage_multiplier = 100/(100+((0.01+resistance_value)*330))
 
         dealt_damage = (
             self.base_damage

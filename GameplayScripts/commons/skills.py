@@ -10,7 +10,7 @@ Spells         = {}
 ChampionSpells = {}
 
 damageCalc = DamageSpecification()
-damageType = DamageType(1);
+damageType = DamageType.Normal;
 
 class SFlag:
 	Targeted        = 1
@@ -307,10 +307,13 @@ def is_skillshot_cone(skill_name):
 def is_last_hitable(game, player, enemy):
 	missile_speed = player.basic_missile_speed + 1
 	
+	#percent_ad/ap doesn't help for last hitting, makes it last hit way too early
+	#damageCalc.percent_ad = 1.0
+	#damageCalc.percent_ap = 1.0
 	damageCalc.damage_type = damageType
 	damageCalc.base_damage = 0
 		
-	hit_dmg = damageCalc.calculate_damage(player, enemy) + items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy)
+	hit_dmg = (damageCalc.calculate_damage(player, enemy) + items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy))-2
 	
 	hp = enemy.health
 	atk_speed = player.base_atk_speed * player.atk_speed_multi
