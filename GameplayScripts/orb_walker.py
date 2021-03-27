@@ -25,7 +25,7 @@ targeting = TargetingConfig()
 
 soldiers = {
 	#Name -> (radius, show_radius_circle, show_radius_circle_minimap, icon)                      
-	'azirsoldier'          : [310, True,  False, "azir_w"]
+	'azirsoldier'          : [345, True,  False, "azir_w"]
 }
 
 
@@ -68,19 +68,19 @@ def find_minion_target(game):
 	min_health = 9999999999
 	target = None
 	for minion in game.minions:
-		if minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < atk_range and skills.is_last_hitable(game, game.player, minion):
+		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < atk_range and skills.is_last_hitable(game, game.player, minion):
 			target = minion
 			min_health = minion.health
 		
 	return target
 	
 def find_soldier_minion_target(game, soldier_obj):
-	atk_range = game.player.base_atk_range + game.player.gameplay_radius
-	soldier_atk_range = soldier_obj.base_atk_range + soldier_obj.gameplay_radius
+	soldier_affect_range = 700
+	soldier_radius = 345
 	min_health = 9999999999
 	soldier_target = None
 	for minion in game.minions:
-		if minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < atk_range + soldier_atk_range and game.distance(soldier_obj, minion) < soldier_atk_range and skills.is_last_hitable(game, game.player, minion):
+		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < soldier_affect_range + soldier_radius and game.distance(soldier_obj, minion) < soldier_radius and skills.is_last_hitable(game, game.player, minion):
 			soldier_target = minion
 			min_health = minion.health
 		

@@ -10,7 +10,7 @@ Spells         = {}
 ChampionSpells = {}
 
 damageCalc = DamageSpecification()
-damageType = DamageType(2);
+damageType = DamageType(1);
 
 class SFlag:
 	Targeted        = 1
