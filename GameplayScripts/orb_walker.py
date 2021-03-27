@@ -15,6 +15,7 @@ last_moved = 0
 key_attack_move = 0
 key_orbwalk = 0
 auto_last_hit = False
+soldier_target = None
 max_atk_speed = 0
 
 toggle_mode = False
@@ -24,7 +25,7 @@ targeting = TargetingConfig()
 
 soldiers = {
 	#Name -> (radius, show_radius_circle, show_radius_circle_minimap, icon)                      
-	'azirsoldier'          : [315, True,  False, "azir_w"]
+	'azirsoldier'          : [310, True,  False, "azir_w"]
 }
 
 
@@ -87,6 +88,7 @@ def find_soldier_minion_target(game, soldier_obj):
 	
 def get_target(game):
 	global auto_last_hit
+	global soldier_target
 	
 	target = targeting.get_target(game, game.player.base_atk_range + game.player.gameplay_radius)
 	

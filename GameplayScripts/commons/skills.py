@@ -1,11 +1,16 @@
 from lview import *
 import math, itertools, time
 from . import items
+from commons.damage_calculator import DamageSpecification
+from commons.damage_calculator import DamageType
 
 Version = "experimental version"
 MissileToSpell = {}
 Spells         = {}
 ChampionSpells = {}
+
+damageCalc = DamageSpecification()
+damageType = DamageType(2);
 
 class SFlag:
 	Targeted        = 1
@@ -298,11 +303,14 @@ def is_skillshot_cone(skill_name):
 	if skill_name not in Spells:
 		return False
 	return Spells[skill_name].flags & SFlag.Cone
-	
+
 def is_last_hitable(game, player, enemy):
 	missile_speed = player.basic_missile_speed + 1
+	
+	damageCalc.damage_type = damageType
+	damageCalc.base_damage = 0
 		
-	hit_dmg = items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy)
+	hit_dmg = damageCalc.calculate_damage(player, enemy) + items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy)
 	
 	hp = enemy.health
 	atk_speed = player.base_atk_speed * player.atk_speed_multi

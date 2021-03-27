@@ -11,6 +11,7 @@
 #include "Spell.h"
 #include "SpellInterface.h"
 #include "ItemSlot.h"
+#include "BuffInstance.h"
 
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python.hpp>
@@ -98,6 +99,7 @@ public:
 			              
 	bool                  IsRanged();
 	list                  ItemsToPyList();
+	list                  BuffsToPyList();
 				          
 	Spell                 Q = Spell(SpellSlot::Q);
 	Spell                 W = Spell(SpellSlot::W);
@@ -108,6 +110,11 @@ public:
 				          
 	DWORD                 level;
 	ItemSlot              itemSlots[6];
+
+	std::vector<BuffInstance> buffVector;
+
+
+
 private:		         
 	static DWORD          spellSlotPointerBuffer[6];
 	static BYTE           itemListBuffer[0x100];

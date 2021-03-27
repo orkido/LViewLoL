@@ -46,6 +46,12 @@ BOOST_PYTHON_MODULE(lview) {
 		.def_readonly("movement_speed_percent", &ItemSlot::GetMovementSpeedPercent)
 		;
 
+	class_<BuffInstance>("Buff", init<BuffInstance>())
+		.def_readonly("name",                   &BuffInstance::name)
+		.def_readonly("start_time",             &BuffInstance::startTime)
+		.def_readonly("end_time",               &BuffInstance::endTime)
+		;
+
 	class_<Spell>("Spell", init<SpellSlot>())
 		.def_readonly("name",                   &Spell::name)
 		.def_readonly("slot",                   &Spell::slot)
@@ -122,6 +128,7 @@ BOOST_PYTHON_MODULE(lview) {
 		.def_readonly("D",                    &GameObject::D)
 		.def_readonly("F",                    &GameObject::F)
 		.def_readonly("items",                &GameObject::ItemsToPyList)
+		.def_readonly("buffs",                &GameObject::BuffsToPyList)
 		.def_readonly("lvl",                  &GameObject::level)
 								              
 		.def("get_summoner_spell",            &GameObject::GetSummonerSpell, return_value_policy<reference_existing_object>())

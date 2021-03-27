@@ -70,4 +70,11 @@ public:
 	static int MinimapObjectHud;
 	static int MinimapHudPos;
 	static int MinimapHudSize;
+
+	static int ObjBuffManager;
+	static int BuffManagerEntriesArray;
+	static int BuffEntryBuff;
+	static int BuffEntryBuffStartTime;
+	static int BuffEntryBuffEndTime;
+	static int BuffName;
 };

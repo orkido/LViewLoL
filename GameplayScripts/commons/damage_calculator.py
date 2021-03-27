@@ -60,6 +60,9 @@ class DamageSpecification:
             damage_multiplier = 100.0 / (100.0 + resistance_value)
         else:
             damage_multiplier = 2.0 - 100.0 / (100.0 - resistance_value)
+        
+		# BB: Temp workaround until we figure out wtf is wrong with last hitting - works well on Azir
+        damage_multiplier = 100/(100+(resistance_value*0.70))
 
         dealt_damage = (
             self.base_damage
@@ -71,7 +74,7 @@ class DamageSpecification:
 
         percent_current_health = target.health / target.max_health
         if percent_current_health <= self.missing_health_max_scale_multiplier:
-            dealt_damage = dealt_damage * (1.0 + self.missing_health_scale_multiplier)
+            dealt_damage = dealt_damage * (1.1 + self.missing_health_scale_multiplier)
         else:
             dealt_damage = (dealt_damage *
                 (1.0 + self.missing_health_scale_multiplier - self.missing_health_scale_multiplier
