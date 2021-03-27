@@ -75,7 +75,7 @@ def find_minion_target(game):
 	return target
 	
 def find_soldier_minion_target(game, soldier_obj):
-	soldier_affect_range = 700
+	soldier_affect_range = 660
 	soldier_radius = 345
 	min_health = 9999999999
 	soldier_target = None
@@ -94,7 +94,7 @@ def get_target(game):
 	
 	if not target and auto_last_hit:
 		for obj in game.others:
-			if not obj.is_alive or obj.is_enemy_to(game.player):
+			if not obj.is_alive or obj.is_ally_to(game.player):
 				continue
 			
 			if obj.has_tags(UnitTag.Unit_Special_AzirW):
@@ -142,7 +142,7 @@ def lview_update(game, ui):
 	
 	atk_speed = self.base_atk_speed * self.atk_speed_multi
 	b_windup_time = (1.0/self.base_atk_speed)*game.player.basic_atk_windup
-	c_atk_time = 1.0/atk_speed
+	c_atk_time = (1.0/atk_speed)+0.10
 	max_atk_time = 1.0/max_atk_speed
 
 	target = get_target(game)

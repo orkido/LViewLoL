@@ -16,7 +16,7 @@ class DamageSpecification:
 
     # Damage is increased by up to missing_health_multiplier based on missing enemy health. Maximum if enemy health is below missing_health_max_multiplier
     missing_health_scale_multiplier = 0.0
-    missing_health_max_scale_multiplier = 1.0
+    missing_health_max_scale_multiplier = 0.33
 
     # Damage increased by missing_health_multiplier * enemy_missing_health
     missing_health_multiplier = 0.0
@@ -74,7 +74,7 @@ class DamageSpecification:
 
         percent_current_health = target.health / target.max_health
         if percent_current_health <= self.missing_health_max_scale_multiplier:
-            dealt_damage = dealt_damage * (1.1 + self.missing_health_scale_multiplier)
+            dealt_damage = dealt_damage * (1.0 + self.missing_health_scale_multiplier)
         else:
             dealt_damage = (dealt_damage *
                 (1.0 + self.missing_health_scale_multiplier - self.missing_health_scale_multiplier

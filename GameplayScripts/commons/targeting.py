@@ -43,33 +43,38 @@ class TargetingConfig:
 	def find_target(self, game, array, range, value_extractor):
 		target = None
 		min = 99999999
+		val = 0
 		for obj in array:
 		
+			soldier = None
 			is_soldier_targeting = False
 			range_calc = (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius)
-			soldier_affect_range = 700
-			soldier_radius = 345
+			soldier_affect_range = 660
+			soldier_radius = 440
 			
 			for soldier_obj in game.others:
 				if not soldier_obj.is_alive or soldier_obj.is_enemy_to(game.player):
 					continue
 				
 				if soldier_obj.has_tags(UnitTag.Unit_Special_AzirW):
-					if game.distance(game.player, obj) > (range + soldier_radius):
+					if game.distance(game.player, obj) > (soldier_affect_range + soldier_radius):
 						continue
 					
-					range_calc = (game.distance(soldier_obj, obj) - soldier_obj.gameplay_radius - obj.gameplay_radius)
+					soldier = soldier_obj
+					range_calc = (game.distance(soldier_obj, obj))# - soldier_obj.gameplay_radius - obj.gameplay_radius)
 					is_soldier_targeting = True
 					
 			if is_soldier_targeting == True:
 				if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or range_calc > soldier_radius:
 					continue
-			
-			if is_soldier_targeting == False:
+					
+				val = value_extractor(soldier, obj)
+			else:
 				if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or range_calc > range:
 					continue
+					
+				val = value_extractor(game.player, obj)
 				
-			val = value_extractor(game.player, obj)
 			if val < min:
 				min = val
 				target = obj
