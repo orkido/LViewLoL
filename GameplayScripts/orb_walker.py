@@ -25,7 +25,7 @@ targeting = TargetingConfig()
 
 soldiers = {
 	#Name -> (radius, show_radius_circle, show_radius_circle_minimap, icon)                      
-	'azirsoldier'          : [345, True,  False, "azir_w"]
+	'azirsoldier'          : [375, True,  False, "azir_w"]
 }
 
 
@@ -76,7 +76,7 @@ def find_minion_target(game):
 	
 def find_soldier_minion_target(game, soldier_obj):
 	soldier_affect_range = 660
-	soldier_radius = 345
+	soldier_radius = 375
 	min_health = 9999999999
 	soldier_target = None
 	for minion in game.minions:

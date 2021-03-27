@@ -50,7 +50,7 @@ class TargetingConfig:
 			is_soldier_targeting = False
 			range_calc = (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius)
 			soldier_affect_range = 660
-			soldier_radius = 440
+			soldier_radius = 375
 			
 			for soldier_obj in game.others:
 				if not soldier_obj.is_alive or soldier_obj.is_enemy_to(game.player):
