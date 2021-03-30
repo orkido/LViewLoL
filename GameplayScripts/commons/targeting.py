@@ -1,5 +1,6 @@
 from lview import *
 from enum import Enum
+from commons import skills
 
 class Target(Enum):
 	ClosestToPlayer = 0
@@ -45,30 +46,19 @@ class TargetingConfig:
 		min = 99999999
 		val = 0
 		for obj in array:
-		
-			soldier = None
-			is_soldier_targeting = False
+			if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player):
+				continue
+
 			range_calc = (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius)
-			soldier_affect_range = 660
-			soldier_radius = 310
-			
-			for soldier_obj in game.others:
-				if not soldier_obj.is_alive or soldier_obj.is_enemy_to(game.player):
-					continue
-				
-				if soldier_obj.has_tags(UnitTag.Unit_Special_AzirW):
-					if game.distance(game.player, obj) > (soldier_affect_range + soldier_radius):
-						continue
-					
-					soldier = soldier_obj
-					range_calc = (game.distance(soldier_obj, obj) - obj.gameplay_radius)
-					is_soldier_targeting = True
-					
-			if is_soldier_targeting == True:
-				if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or range_calc > soldier_radius:
+			soldier_radius = 325.0
+			soldier = skills.soldier_near_obj(game, obj)
+
+			if soldier is not None:
+				range_calc = (game.distance(soldier, obj))
+				if range_calc > soldier_radius:
 					continue
 			else:
-				if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or range_calc > range:
+				if range_calc > range:
 					continue
 			
 			val = value_extractor(game.player, obj)
