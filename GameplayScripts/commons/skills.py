@@ -393,7 +393,7 @@ def is_last_hitable(game, player, enemy):
 		#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
 		#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
 		atk_speed = player.base_atk_speed * player.atk_speed_multi
-		missile_speed = (3882.0 * atk_speed/player.base_atk_speed)
+		missile_speed = (3895.0 * atk_speed/player.base_atk_speed)
 
 	#TODO: integrate item onhit calculation based on damagetype
 	hit_dmg = (damageCalc.calculate_damage(player, enemy))
