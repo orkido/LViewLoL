@@ -60,9 +60,6 @@ class DamageSpecification:
             damage_multiplier = 100.0 / (100.0 + resistance_value)
         else:
             damage_multiplier = 2.0 - 100.0 / (100.0 - resistance_value)
-        
-		# BB: Temp workaround until we figure out wtf is wrong with last hitting - works well on Azir
-        #damage_multiplier = 100/(100+((0.01+resistance_value)*330))
 
         dealt_damage = (
             self.base_damage

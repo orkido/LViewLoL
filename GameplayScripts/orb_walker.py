@@ -15,6 +15,7 @@ last_moved = 0
 
 key_attack_move = 0
 key_orbwalk = 0
+key_lasthit = 0
 
 key_whitelist = {
 	"key_1": 2,
@@ -48,35 +49,38 @@ soldiers = {
 
 
 def lview_load_cfg(cfg):
-	global key_attack_move, key_orbwalk, max_atk_speed, auto_last_hit, toggle_mode
+	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed, auto_last_hit, toggle_mode
 	global targeting
 	
 	key_attack_move = cfg.get_int("key_attack_move", 0)	
 	key_orbwalk     = cfg.get_int("key_orbwalk", 0)	
+	key_lasthit     = cfg.get_int("key_lasthit", 0)
 	max_atk_speed   = cfg.get_float("max_atk_speed", 2.0)
 	auto_last_hit   = cfg.get_bool("auto_last_hit", True)
 	toggle_mode     = cfg.get_bool("toggle_mode", False)
 	targeting.load_from_cfg(cfg)
 	
 def lview_save_cfg(cfg):
-	global key_attack_move, key_orbwalk, max_atk_speed, auto_last_hit, toggle_mode
+	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed, auto_last_hit, toggle_mode
 	global targeting
 		
 	cfg.set_int("key_attack_move", key_attack_move)
 	cfg.set_int("key_orbwalk", key_orbwalk)
+	cfg.set_int("key_lasthit", key_lasthit)
 	cfg.set_float("max_atk_speed", max_atk_speed)
 	cfg.set_bool("auto_last_hit", auto_last_hit)
 	cfg.set_bool("toggle_mode", toggle_mode)
 	targeting.save_to_cfg(cfg)
 	
 def lview_draw_settings(game, ui):
-	global key_attack_move, key_orbwalk, max_atk_speed, auto_last_hit, toggle_mode
+	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed, auto_last_hit, toggle_mode
 	global targeting
 	
 	champ_name = game.player.name
 	max_atk_speed   = ui.sliderfloat("Max attack speed", max_atk_speed, 1.5, 3.0)
 	key_attack_move = ui.keyselect("Attack move key", key_attack_move)
-	key_orbwalk     = ui.keyselect("Orbwalk activate key", key_orbwalk)
+	key_orbwalk     = ui.keyselect("Orbwalk and focus harass key", key_orbwalk)
+	key_lasthit     = ui.keyselect("Orbwalk and focus lasthit key", key_lasthit)
 	auto_last_hit   = ui.checkbox("Last hit minions when no targets", auto_last_hit)
 	toggle_mode     = ui.checkbox("Toggle mode", toggle_mode)
 	targeting.draw(ui)
@@ -87,8 +91,6 @@ def find_minion_target(game):
 	player_target = None
 	for minion in game.minions:
 		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < atk_range:
-			#game.draw_circle_world(minion.pos, 24, 16, 3, Color.BLUE)
-
 			if skills.is_last_hitable(game, game.player, minion):
 				player_target = minion
 				min_health = minion.health
@@ -103,25 +105,38 @@ def find_soldier_minion_target(game):
 	for minion in game.minions:
 		soldier = skills.soldier_near_obj(game, minion)
 		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and soldier is not None:
-			#game.draw_circle_world(minion.pos, 48.0, 16, 3, Color.BLUE)
-
 			if skills.is_last_hitable(game, game.player, minion):
 				soldier_target = minion
 				min_health = minion.health
 		
 	return soldier_target
 	
-def get_target(game):
+def champ_near_obj(game, champ):
+	soldier_target = skills.soldier_near_obj(game, champ)
+	atk_range = game.player.base_atk_range + game.player.gameplay_radius
+	if soldier_target is not None:
+		return True
+	else:
+		return game.distance(game.player, champ) < atk_range
+
+	return False
+
+def get_target(game, last_hit_prio):
 	global auto_last_hit
 	global target
 
 	atk_range = game.player.base_atk_range + game.player.gameplay_radius
 
 	if target is not None and (not target.is_visible or not target.is_alive or (skills.soldier_near_obj(game, target) is None and game.distance(game.player, target) > atk_range)):
-		#game.draw_circle_world(game.player.pos, 24.0, 16, 3, Color.BLACK)
 		target = None 
 		
-	if target is None:
+	if target is not None:
+		if not last_hit_prio and not target.has_tags(UnitTag.Unit_Champion):
+			#since last target is valid but it isn't a champion and we're focusing on harass then we're allowed to overwrite target only if we can find a champion in range
+			for champ in game.champs:
+				if champ_near_obj(game, champ):
+					target = targeting.get_target(game, atk_range)
+	else:
 		target = targeting.get_target(game, atk_range)
 
 	if not target and auto_last_hit:
@@ -170,87 +185,45 @@ def draw(game, obj, radius, show_circle_world, show_circle_map, icon):
 
 def lview_update(game, ui):
 	global last_attacked, alternate, last_moved
-	global key_attack_move, key_orbwalk, max_atk_speed
+	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed
 	global toggle_mode, toggled
 	global target
 	
-	#game.draw_button(game.world_to_screen(game.player.pos), "Buffs: azirwprocbuff" + str(game.player.buffs[0].name) + " - Duration: " + str(game.player.buffs[0].end_time), Color.BLACK, Color.WHITE)
-
-	#if game.player.name == "azir":
-		# for obj in game.others:
-		# 	if not obj.is_alive or obj.is_enemy_to(game.player):
-		# 		continue
-			
-		# 	if obj.has_tags(UnitTag.Unit_Special_AzirW):
-		# 		draw(game, obj, *(soldiers[obj.name]))
-
 	if toggle_mode:
 		if game.was_key_pressed(key_orbwalk):
 			toggled = not toggled
 		if not toggled:
 			return
 			
-	elif not game.is_key_down(key_orbwalk):
+	elif not game.is_key_down(key_orbwalk) and not game.is_key_down(key_lasthit):
 		return
 
+	last_hit_priority = False
+	if game.is_key_down(key_lasthit):
+		last_hit_priority = True
+
+	#Use if you need to prevent orbwalker from interrupting your key presses:
 	# for key in key_whitelist.items():
 	# 	if game.was_key_pressed(key):
 	# 		last_attacked = time.time()
 
-	# if game.player.name == "azir":
-	# 	if game.was_key_pressed(key_q):
-	# 		last_attacked = time.time()
-	# 	if game.was_key_pressed(key_w):
-	# 		last_attacked = time.time()
-	# 	if game.was_key_pressed(key_e):
-	# 		last_attacked = time.time()
-	# 	if game.was_key_pressed(key_r):
-	# 		last_attacked = time.time()
-
-	# game.draw_button(game.world_to_screen(game.player.pos), "OrbWalking", Color.BLACK, Color.WHITE)
-
-	# Handle basic attacks
+	#Handle basic attacks
 	self = game.player
 	atk_speed = self.base_atk_speed * self.atk_speed_multi
 	b_windup_time = ((1.0/self.base_atk_speed)*game.player.basic_atk_windup)
 	c_atk_time = (1.0/atk_speed)
 	max_atk_time = 1.0/max_atk_speed
 
+	#Show orbwalk target
 	if target is not None:
 		game.draw_circle_world(target.pos, 24.0, 16, 3, Color.WHITE)
 
-		# if game.player.name == "azir" and game.player.W.level > 0:
-		# 	#Check if azir arise buff is active (it's named azirwprocbuff)
-		# 	azir_w_atk_speeds = {
-		# 		1:20,
-		# 		2:30,
-		# 		3:40,
-		# 		4:50,
-		# 		5:60
-		# 	}
-		# 	azir_w_atk_speed_multiplier = azir_w_atk_speeds[game.player.W.level]
-
-		# 	w_time = time.time()
-		# 	for buff in game.player.buffs:
-		# 		if buff.name == "azirwprocbuff":
-		# 			if time.time() < buff.end_time:
-		# 				#our attack speed buff is active
-		# 				#need to check spell level of w and get the attack speed multiplier
-		# 				atk_speed = (self.base_atk_speed)
-
-
-		# soldier = soldier_near_obj(game, target)
-		# if soldier is not None:
-
-		# 	num_soldiers = count_soldiers_near_obj(game, target)
-		# 	if num_soldiers == 3:
-
-
-	target = get_target(game)
+	target = get_target(game, last_hit_priority)
 	t = time.time()
 	if t - last_attacked > max(c_atk_time, max_atk_time) and target:
 		last_attacked = t
 		
+		#Don't use press_key if you can avoid it, configure your ingame settings to support attack move on left click
 		#game.press_key(key_attack_move)
 		game.click_at(True, game.world_to_screen(target.pos))
 	else:

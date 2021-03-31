@@ -392,32 +392,20 @@ def is_last_hitable(game, player, enemy):
 		damageCalc.damage_type = DamageType.Magic
 		#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
 		#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
-		atk_speed = player.base_atk_speed * player.atk_speed_multi #or is it * soldier.atk_speed_multi?
+		atk_speed = player.base_atk_speed * player.atk_speed_multi
 		missile_speed = (3866.0 * atk_speed/player.base_atk_speed)
-		#t_until_basic_hits = (4.0/atk_speed)
-		#windup_time = ((1.0/player.base_atk_speed)*soldier.basic_atk_windup)
-		#game.draw_button(game.world_to_screen(game.player.pos), str(damageCalc.base_damage), Color.BLACK, Color.WHITE)
 
-	#game.draw_button(game.world_to_screen(game.player.pos), str(damageCalc.damage_type) + ": " + str(damageCalc.base_damage), Color.BLACK, Color.WHITE)
-		
-	hit_dmg = (damageCalc.calculate_damage(player, enemy))# + items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy))#-12
-
-	#game.draw_button(game.world_to_screen(game.player.pos), str(damageCalc.damage_type) + ": " + str(hit_dmg), Color.BLACK, Color.WHITE)
-	
+	#TODO: integrate item onhit calculation based on damagetype
+	hit_dmg = (damageCalc.calculate_damage(player, enemy))
 	hp = enemy.health
-	t_until_basic_hits = game.distance(player, enemy)/missile_speed#(missile_speed*atk_speed/player.base_atk_speed)
+	t_until_basic_hits = game.distance(player, enemy)/missile_speed
 
-	#where should we be applying client-server latency to the formula- in orbwalker or here?
+	#where should we be applying client-server latency to the formula - in orbwalker or here?
 	for missile in game.missiles:
 		if missile.dest_id == enemy.id:
-			#minion_missilespeed = 0 #0 means it's a melee minion, can't find basic_atk_windup for minions or soldiers
-
 			src = game.get_obj_by_id(missile.src_id)
 			if src:
-				#t_until_missile_hits = game.distance(missile, enemy)/((0.001+missile.speed)-50)#(missile.speed + 1)
 				t_until_missile_hits = game.distance(missile, enemy)/(src.basic_missile_speed + 1) #Using src's basic missile speed is most reliable because different minion types have different missile speeds
-
-				#game.draw_button(game.world_to_screen(src.pos), str(src.name) + " Missile Speed: " + str(src.basic_missile_speed), Color.BLACK, Color.WHITE)
 
 				if t_until_missile_hits < t_until_basic_hits:
 					hp -= src.base_atk
@@ -453,7 +441,6 @@ def castpoint_for_collision(game, spell, caster, target):
 		target_dir.y = 0.0
 	if math.isnan(target_dir.z):
 		target_dir.z = 0.0
-	#print(f'{target_dir.x} {target_dir.y} {target_dir.z}')
 
 	# If the spell is a line we simulate the main missile to get the collision point
 	if spell_extra.flags & SFlag.Line:
