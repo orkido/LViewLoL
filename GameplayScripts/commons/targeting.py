@@ -1,4 +1,6 @@
+from lview import *
 from enum import Enum
+from commons import skills
 
 class Target(Enum):
 	ClosestToPlayer = 0
@@ -42,12 +44,25 @@ class TargetingConfig:
 	def find_target(self, game, array, range, value_extractor):
 		target = None
 		min = 99999999
+		val = 0
 		for obj in array:
-			
-			if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player) or (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius) > range:
+			if not obj.is_alive or not obj.is_visible or obj.is_ally_to(game.player):
 				continue
-				
+
+			range_calc = (game.distance(game.player, obj) - game.player.gameplay_radius - obj.gameplay_radius)
+			soldier_radius = 325.0
+			soldier = skills.soldier_near_obj(game, obj)
+
+			if soldier is not None:
+				range_calc = (game.distance(soldier, obj))
+				if range_calc > soldier_radius:
+					continue
+			else:
+				if range_calc > range:
+					continue
+			
 			val = value_extractor(game.player, obj)
+				
 			if val < min:
 				min = val
 				target = obj

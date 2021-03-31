@@ -135,6 +135,9 @@
     <ClCompile Include="ItemSlot.cpp">
       <Filter>Source Files\Structs\GameRelated\Others</Filter>
     </ClCompile>
+    <ClCompile Include="BuffInstance.cpp">
+      <Filter>Source Files\Structs\GameRelated\Others</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui.h">
@@ -241,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="Offsets.h">
       <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="BuffInstance.h">
+      <Filter>Source Files\Structs\GameRelated\Others</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

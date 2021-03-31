@@ -183,6 +183,40 @@ void GameObject::LoadChampionFromMem(DWORD base, HANDLE hProcess, bool deepLoad)
 		itemSlots[i].stats = GameData::GetItemInfoById(id);
 	}
 
+	// Read Buffs
+	DWORD buffArrayBgn = Mem::ReadDWORD(hProcess, address + Offsets::ObjBuffManager + Offsets::BuffManagerEntriesArray);
+	if (buffArrayBgn != 0) //reads 0 sometimes
+	{
+		buffVector.clear();
+
+		for (int i = 0; i < 50; i++) //idk what size is good
+		{
+			DWORD buffInstancePtr = buffArrayBgn + i * 4;
+			DWORD buffInstance    = Mem::ReadDWORD(hProcess, buffInstancePtr);
+
+			Mem::Read(hProcess, buffInstance, buff, sizeBuff);
+
+			if (buffInstance == 0)
+				continue;
+		
+			DWORD buffInfo = Mem::ReadDWORDFromBuffer(buff, 0x8);
+			
+			if (buffInfo < 10)
+				continue;
+
+			char buffnamebuffer[240];
+			Mem::Read(hProcess, buffInfo + Offsets::BuffName, buffnamebuffer, 240);
+			
+			float buffStartTime;
+			float buffEndTime;
+
+			memcpy(&buffStartTime, &buff[Offsets::BuffEntryBuffStartTime], sizeof(float));
+			memcpy(&buffEndTime,   &buff[Offsets::BuffEntryBuffEndTime],   sizeof(float));
+
+			buffVector.push_back(BuffInstance(buffnamebuffer, buffStartTime, buffEndTime));
+		}
+	}
+	
 	// Read level
 	level = Mem::ReadDWORD(hProcess, base + Offsets::ObjLvl);
 }
@@ -210,6 +244,15 @@ list GameObject::ItemsToPyList() {
 			l.append(boost::ref(itemSlots[i]));
 	}
 	return l;
+}
+
+list GameObject::BuffsToPyList() {
+	list buffList;
+	for (auto &buffs : buffVector)
+	{
+		buffList.append(boost::ref(buffs));
+	}
+	return buffList;
 }
 
 // Missile stuff

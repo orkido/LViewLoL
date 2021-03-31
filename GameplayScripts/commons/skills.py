@@ -1,11 +1,16 @@
 from lview import *
 import math, itertools, time
 from . import items
+from commons.damage_calculator import DamageSpecification
+from commons.damage_calculator import DamageType
 
 Version = "experimental version"
 MissileToSpell = {}
 Spells         = {}
 ChampionSpells = {}
+
+damageCalc = DamageSpecification()
+damageType = DamageType.Normal
 
 class SFlag:
 	Targeted        = 1
@@ -38,6 +43,28 @@ class Spell:
 	name     = "?"
 	missiles = []
 	
+#Based on level, not sure exact formula so hardcoded it
+AzirSoldierDamage = {
+	1: 50,
+	2: 52,
+	3: 54,
+	4: 56,
+	5: 58,
+	6: 60,
+	7: 62,
+	8: 65,
+	9: 70,
+	10: 75,
+	11: 80,
+	12: 90,
+	13: 100,
+	14: 110,
+	15: 120,
+	16: 130,
+	17: 140,
+	18: 150
+}
+
 ChampionSpells = {
 	"aatrox": [
 		Spell("aatroxw",                ["aatroxw"],                               SFlag.CollideGeneric)
@@ -298,22 +325,88 @@ def is_skillshot_cone(skill_name):
 	if skill_name not in Spells:
 		return False
 	return Spells[skill_name].flags & SFlag.Cone
-	
-def is_last_hitable(game, player, enemy):
-	missile_speed = player.basic_missile_speed + 1
-		
-	hit_dmg = items.get_onhit_physical(player, enemy) + items.get_onhit_magical(player, enemy)
-	
-	hp = enemy.health
-	atk_speed = player.base_atk_speed * player.atk_speed_multi
-	t_until_basic_hits = game.distance(player, enemy)/missile_speed#(missile_speed*atk_speed/player.base_atk_speed)
 
+def is_soldier_alive(game):
+	if game.player.name == "azir":
+		for obj in game.others:
+			if not obj.is_alive or obj.is_enemy_to(game.player):
+				continue
+			
+			if obj.has_tags(UnitTag.Unit_Special_AzirW):
+				return obj
+		
+	return None
+
+def soldier_near_obj(game, enemy):
+	if game.player.name == "azir":
+		soldier_affect_range = 650.0
+		soldier_radius = 325.0
+
+		for obj in game.others:
+			if not obj.is_alive or obj.is_enemy_to(game.player) or game.distance(game.player, obj) > soldier_affect_range + soldier_radius:
+				continue
+				
+			if obj.has_tags(UnitTag.Unit_Special_AzirW):
+				if (game.distance(obj, enemy) < soldier_radius):
+					return obj
+
+	return None
+
+def count_soldiers_near_obj(game, enemy):
+	num_soldiers = 0
+	if game.player.name == "azir":
+		soldier_affect_range = 650.0
+		soldier_radius = 325.0
+
+		for obj in game.others:
+			if not obj.is_alive or obj.is_enemy_to(game.player) or game.distance(game.player, obj) > soldier_affect_range + soldier_radius:
+				continue
+			
+			if obj.has_tags(UnitTag.Unit_Special_AzirW):
+				if (game.distance(obj, enemy) < soldier_radius):
+					num_soldiers += 1
+			
+	return num_soldiers
+
+def is_last_hitable(game, player, enemy):
+	missile_speed = player.basic_missile_speed + 1.0
+	atk_speed = player.base_atk_speed * player.atk_speed_multi
+	
+	#percent_ad/ap will be situationally helpful for last hitting
+	#damageCalc.percent_ad = 1.0
+	#damageCalc.percent_ap = 1.0
+	damageCalc.damage_type = damageType
+	damageCalc.base_damage = (player.base_atk + player.bonus_atk) - 0.33
+
+	#soldier_near_obj returns None if you're not playing Azir
+	#1 soldier = 0% additional onhit soldier dmg, 2 soldiers = 25% addtional onhit soldier dmg, 3 = 50%, etc..
+	#one soldier can deal max 150 + 0.60 percent_ap, two soldiers is (150 + 0.60 percent_ap) * 1.25, three is *1.5, etc...
+	soldier = soldier_near_obj(game, enemy)
+
+	if soldier is not None:
+		num_soldiers = count_soldiers_near_obj(game, enemy)
+		#Azir dmg formula
+		damageCalc.base_damage = AzirSoldierDamage[player.lvl] + (player.ap * 0.60)
+		#Addtional 25% dmg for each additional soldier (num_soldiers-1)
+		damageCalc.base_damage = (damageCalc.base_damage + (damageCalc.base_damage*((num_soldiers-1) * 0.25))) - 0.25
+		damageCalc.damage_type = DamageType.Magic
+		#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
+		#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
+		atk_speed = player.base_atk_speed * player.atk_speed_multi
+		missile_speed = (3895.0 * atk_speed/player.base_atk_speed)
+
+	#TODO: integrate item onhit calculation based on damagetype
+	hit_dmg = (damageCalc.calculate_damage(player, enemy))
+	hp = enemy.health
+	t_until_basic_hits = game.distance(player, enemy)/missile_speed
+
+	#where should we be applying client-server latency to the formula - in orbwalker or here?
 	for missile in game.missiles:
 		if missile.dest_id == enemy.id:
 			src = game.get_obj_by_id(missile.src_id)
 			if src:
-				t_until_missile_hits = game.distance(missile, enemy)/(missile.speed + 1)
-			
+				t_until_missile_hits = game.distance(missile, enemy)/((src.basic_missile_speed + 1.0) - 0.4)#- 1.1 #Using src's basic missile speed is most reliable because different minion types have different missile speeds
+
 				if t_until_missile_hits < t_until_basic_hits:
 					hp -= src.base_atk
 
@@ -348,7 +441,6 @@ def castpoint_for_collision(game, spell, caster, target):
 		target_dir.y = 0.0
 	if math.isnan(target_dir.z):
 		target_dir.z = 0.0
-	#print(f'{target_dir.x} {target_dir.y} {target_dir.z}')
 
 	# If the spell is a line we simulate the main missile to get the collision point
 	if spell_extra.flags & SFlag.Line:
