@@ -131,12 +131,16 @@ def get_target(game, last_hit_prio):
 		target = None 
 		
 	if target is not None:
-		if not last_hit_prio and not target.has_tags(UnitTag.Unit_Champion):
-			#since last target is valid but it isn't a champion and we're focusing on harass then we're allowed to overwrite target only if we can find a champion in range
-			for champ in game.champs:
-				if champ_near_obj(game, champ):
-					target = targeting.get_target(game, atk_range)
-	else:
+		if not last_hit_prio:
+			if not target.has_tags(UnitTag.Unit_Champion):
+				#since last target is valid but it isn't a champion and we're focusing on harass then we're allowed to overwrite target only if we can find a champion in range
+				for champ in game.champs:
+					if champ_near_obj(game, champ):
+						target = targeting.get_target(game, atk_range)
+		else:
+			target = None
+			
+	elif not last_hit_prio:
 		target = targeting.get_target(game, atk_range)
 
 	if not target and auto_last_hit:
@@ -148,6 +152,9 @@ def get_target(game, last_hit_prio):
 	
 		if not target:
 			target = find_minion_target(game)
+
+	if not target and last_hit_prio:
+		target = targeting.get_target(game, atk_range)
 	
 	return target
 

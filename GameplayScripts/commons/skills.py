@@ -369,14 +369,14 @@ def count_soldiers_near_obj(game, enemy):
 	return num_soldiers
 
 def is_last_hitable(game, player, enemy):
-	missile_speed = player.basic_missile_speed + 1
+	missile_speed = player.basic_missile_speed + 1.0
 	atk_speed = player.base_atk_speed * player.atk_speed_multi
 	
 	#percent_ad/ap will be situationally helpful for last hitting
 	#damageCalc.percent_ad = 1.0
 	#damageCalc.percent_ap = 1.0
 	damageCalc.damage_type = damageType
-	damageCalc.base_damage = (player.base_atk + player.bonus_atk) - 0.50
+	damageCalc.base_damage = (player.base_atk + player.bonus_atk) - 0.33
 
 	#soldier_near_obj returns None if you're not playing Azir
 	#1 soldier = 0% additional onhit soldier dmg, 2 soldiers = 25% addtional onhit soldier dmg, 3 = 50%, etc..
@@ -388,12 +388,12 @@ def is_last_hitable(game, player, enemy):
 		#Azir dmg formula
 		damageCalc.base_damage = AzirSoldierDamage[player.lvl] + (player.ap * 0.60)
 		#Addtional 25% dmg for each additional soldier (num_soldiers-1)
-		damageCalc.base_damage = damageCalc.base_damage + (damageCalc.base_damage*((num_soldiers-1) * 0.25)) - 0.50
+		damageCalc.base_damage = (damageCalc.base_damage + (damageCalc.base_damage*((num_soldiers-1) * 0.25))) - 0.25
 		damageCalc.damage_type = DamageType.Magic
 		#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
 		#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
 		atk_speed = player.base_atk_speed * player.atk_speed_multi
-		missile_speed = (3866.0 * atk_speed/player.base_atk_speed)
+		missile_speed = (3882.0 * atk_speed/player.base_atk_speed)
 
 	#TODO: integrate item onhit calculation based on damagetype
 	hit_dmg = (damageCalc.calculate_damage(player, enemy))
@@ -405,7 +405,7 @@ def is_last_hitable(game, player, enemy):
 		if missile.dest_id == enemy.id:
 			src = game.get_obj_by_id(missile.src_id)
 			if src:
-				t_until_missile_hits = game.distance(missile, enemy)/(src.basic_missile_speed + 1) #Using src's basic missile speed is most reliable because different minion types have different missile speeds
+				t_until_missile_hits = game.distance(missile, enemy)/((src.basic_missile_speed + 1.0) - 0.4)#- 1.1 #Using src's basic missile speed is most reliable because different minion types have different missile speeds
 
 				if t_until_missile_hits < t_until_basic_hits:
 					hp -= src.base_atk
