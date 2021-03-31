@@ -8,6 +8,7 @@ public:
 	Offsets();
 
 	static int GameTime;
+	static int GameVersion;
 
 	static int ObjIndex;
 	static int ObjTeam;
@@ -33,6 +34,7 @@ public:
 	static int ObjAtkSpeedMulti;
 	static int ObjItemList;
 	static int ObjSrcIndex;
+	static int ObjExperience;
 
 	static int ItemListItem;
 	static int ItemInfo;
@@ -50,6 +52,8 @@ public:
 	static int SpellInfoSpellData;
 	static int SpellDataSpellName;
 	static int SpellDataMissileName;
+	static int SpellSlotSmiteTimer;
+	static int SpellSlotSmiteCharges;
 
 	static int ObjectManager;
 	static int LocalPlayer;
