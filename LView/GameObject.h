@@ -53,6 +53,7 @@ public:
 				          
 public:			     	 
 	float                 health;
+	float				  mana;
 	float                 maxHealth;
 	float                 baseAttack;
 	float                 bonusAttack;
@@ -61,6 +62,7 @@ public:
 	float                 crit;
 	float                 critMulti;
 	float                 abilityPower;
+	float				  abilityHaste;
 	float                 atkSpeedMulti;
 	float                 movementSpeed;
 	float                 duration;

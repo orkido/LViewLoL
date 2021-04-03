@@ -78,6 +78,7 @@ BOOST_PYTHON_MODULE(lview) {
 	class_<GameObject>("Obj")
 		.def_readonly("address",              &GameObject::address)
 		.def_readonly("health",               &GameObject::health)
+		.def_readonly("mana",				  &GameObject::mana)
 		.def_readonly("max_health",           &GameObject::maxHealth)
 		.def_readonly("base_atk",             &GameObject::baseAttack)
 		.def_readonly("bonus_atk",            &GameObject::bonusAttack)
@@ -96,6 +97,7 @@ BOOST_PYTHON_MODULE(lview) {
 		.def_readonly("crit",                 &GameObject::crit)
 		.def_readonly("crit_multi",           &GameObject::critMulti)
 		.def_readonly("ap",                   &GameObject::abilityPower)
+		.def_readonly("ability_haste",        &GameObject::abilityHaste)
 		.def_readonly("atk_speed_multi",      &GameObject::atkSpeedMulti)
 		.def_readonly("team",                 &GameObject::team)
 

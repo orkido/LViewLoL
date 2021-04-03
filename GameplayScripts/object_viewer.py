@@ -83,6 +83,7 @@ def draw_game_object(obj, ui, additional_draw = None, set_open=False):
 		
 		ui.separator()
 		ui.dragfloat("health", obj.health)
+		ui.dragfloat("mana", obj.mana)
 		ui.checkbox("is_alive", obj.is_alive)
 		
 		ui.separator()
@@ -91,6 +92,7 @@ def draw_game_object(obj, ui, additional_draw = None, set_open=False):
 		ui.dragfloat("armour", obj.armour)
 		ui.dragfloat("magic_resist", obj.magic_resist)
 		ui.dragfloat("ap", obj.ap)
+		ui.dragfloat("ability_haste", obj.ability_haste)
 		ui.dragfloat("crit", obj.crit)
 		ui.dragfloat("crit_multi", obj.crit_multi)
 		

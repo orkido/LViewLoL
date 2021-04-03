@@ -65,6 +65,28 @@ AzirSoldierDamage = {
 	18: 150
 }
 
+#Based on level, not sure exact formula so hardcoded it
+CassiopeiaEDamage = {
+	1: 52,
+	2: 56,
+	3: 60,
+	4: 64,
+	5: 68,
+	6: 72,
+	7: 76,
+	8: 80,
+	9: 84,
+	10: 88,
+	11: 92,
+	12: 96,
+	13: 100,
+	14: 104,
+	15: 108,
+	16: 112,
+	17: 116,
+	18: 120
+}
+
 ChampionSpells = {
 	"aatrox": [
 		Spell("aatroxw",                ["aatroxw"],                               SFlag.CollideGeneric)
@@ -89,6 +111,9 @@ ChampionSpells = {
 		Spell("caitlynpiltoverpeacemaker", ["caitlynpiltoverpeacemaker", "caitlynpiltoverpeacemaker2"],          SFlag.Line | SFlag.CollideWindwall),
 		Spell("caitlynyordletrap",         [],                                                                   SFlag.Area),
 		Spell("caitlynentrapment",         ["caitlynentrapmentmissile"],                                         SFlag.SkillshotLine)
+	],
+	"cassiopeia": [
+		Spell("cassiopeiaq",                [],                                    SFlag.Area, delay = 0.250)
 	],
 	"chogath": [                        
 		Spell("rupture",                [],                                        SFlag.Area, delay = 0.627),
@@ -381,19 +406,28 @@ def is_last_hitable(game, player, enemy):
 	#soldier_near_obj returns None if you're not playing Azir
 	#1 soldier = 0% additional onhit soldier dmg, 2 soldiers = 25% addtional onhit soldier dmg, 3 = 50%, etc..
 	#one soldier can deal max 150 + 0.60 percent_ap, two soldiers is (150 + 0.60 percent_ap) * 1.25, three is *1.5, etc...
-	soldier = soldier_near_obj(game, enemy)
+	if game.player.name == "azir":
+		soldier = soldier_near_obj(game, enemy)
 
-	if soldier is not None:
-		num_soldiers = count_soldiers_near_obj(game, enemy)
-		#Azir dmg formula
-		damageCalc.base_damage = AzirSoldierDamage[player.lvl] + (player.ap * 0.60)
-		#Addtional 25% dmg for each additional soldier (num_soldiers-1)
-		damageCalc.base_damage = (damageCalc.base_damage + (damageCalc.base_damage*((num_soldiers-1) * 0.25))) - 0.25
-		damageCalc.damage_type = DamageType.Magic
-		#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
-		#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
-		atk_speed = player.base_atk_speed * player.atk_speed_multi
-		missile_speed = (3895.0 * atk_speed/player.base_atk_speed)
+		if soldier is not None:
+			num_soldiers = count_soldiers_near_obj(game, enemy)
+			#Azir dmg formula
+			damageCalc.base_damage = AzirSoldierDamage[player.lvl] + (player.ap * 0.60)
+			#Addtional 25% dmg for each additional soldier (num_soldiers-1)
+			damageCalc.base_damage = (damageCalc.base_damage + (damageCalc.base_damage*((num_soldiers-1) * 0.25))) - 0.25
+			damageCalc.damage_type = DamageType.Magic
+			#Missile speed for soldier autos is weird- it isnt a missile but the soldier spears do have a travel time before dmg is registered, it can be interrupted by issuing another command much like a traditional auto windup. 
+			#Couldn't find a basic_atk_windup for azirsoldier so missile speed is partially based on magic number
+			atk_speed = player.base_atk_speed * player.atk_speed_multi
+			missile_speed = (3895.0 * atk_speed/player.base_atk_speed)
+	elif game.player.name == "cassiopeia":
+		skillE = getattr(game.player, 'E')
+
+		if game.player.mana > 50.0:
+			damageCalc.base_damage = CassiopeiaEDamage[player.lvl] + (player.ap * 0.10)
+			damageCalc.damage_type = DamageType.Magic
+			atk_speed = 0.125
+			missile_speed = 2500
 
 	#TODO: integrate item onhit calculation based on damagetype
 	hit_dmg = (damageCalc.calculate_damage(player, enemy))

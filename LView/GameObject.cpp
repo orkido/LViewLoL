@@ -101,6 +101,7 @@ void GameObject::LoadFromMem(DWORD base, HANDLE hProcess, bool deepLoad) {
 	memcpy(&team,          &buff[Offsets::ObjTeam],          sizeof(short));
 	memcpy(&position,      &buff[Offsets::ObjPos],           sizeof(Vector3));
 	memcpy(&health,        &buff[Offsets::ObjHealth],        sizeof(float));
+	memcpy(&mana,	       &buff[Offsets::ObjMana],          sizeof(float));
 	memcpy(&maxHealth,     &buff[Offsets::ObjMaxHealth],     sizeof(float));
 	memcpy(&baseAttack,    &buff[Offsets::ObjBaseAtk],       sizeof(float));
 	memcpy(&bonusAttack,   &buff[Offsets::ObjBonusAtk],      sizeof(float));
@@ -112,6 +113,7 @@ void GameObject::LoadFromMem(DWORD base, HANDLE hProcess, bool deepLoad) {
 	memcpy(&crit,          &buff[Offsets::ObjCrit],          sizeof(float));
 	memcpy(&critMulti,     &buff[Offsets::ObjCritMulti],     sizeof(float));
 	memcpy(&abilityPower,  &buff[Offsets::ObjAbilityPower],  sizeof(float));
+	memcpy(&abilityHaste,  &buff[Offsets::ObjAbilityHaste],  sizeof(float));
 	memcpy(&atkSpeedMulti, &buff[Offsets::ObjAtkSpeedMulti], sizeof(float));
 	memcpy(&movementSpeed, &buff[Offsets::ObjMoveSpeed],     sizeof(float));
 	memcpy(&networkId,     &buff[Offsets::ObjNetworkID],     sizeof(DWORD));

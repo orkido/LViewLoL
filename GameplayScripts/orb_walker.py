@@ -11,6 +11,7 @@ lview_script_info = {
 }
 
 last_attacked = 0
+last_cass_q = 0
 last_moved = 0
 
 key_attack_move = 0
@@ -42,11 +43,11 @@ toggled = False
 
 targeting = TargetingConfig() 
 
-soldiers = {
-	#Name -> (radius, show_radius_circle, show_radius_circle_minimap, icon)                      
-	'azirsoldier'          : [325.0, True,  False, "azir_w"]
+#Used to branch orbwalking logic if Player is using one of these champs
+special_orbwalk_champs = {
+	"azir": 0.0,
+	"cassiopeia": 0.0
 }
-
 
 def lview_load_cfg(cfg):
 	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed, auto_last_hit, toggle_mode
@@ -85,21 +86,21 @@ def lview_draw_settings(game, ui):
 	toggle_mode     = ui.checkbox("Toggle mode", toggle_mode)
 	targeting.draw(ui)
 
-def find_minion_target(game):
-	atk_range = game.player.base_atk_range + game.player.gameplay_radius
+#Added range parameter so we can specify custom minion targeting range based on champ ability range (like cass E for example)
+def find_minion_target(game, range):
+	#atk_range = game.player.base_atk_range + game.player.gameplay_radius
 	min_health = 9999999999
 	player_target = None
 	for minion in game.minions:
-		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < atk_range:
+		if minion.is_visible and minion.is_enemy_to(game.player) and minion.is_alive and minion.health < min_health and game.distance(game.player, minion) < range:
 			if skills.is_last_hitable(game, game.player, minion):
 				player_target = minion
 				min_health = minion.health
 		
 	return player_target
 	
+#We rely on skills.soldier_near_obj to calculate the range and retrieve the soldier data for soldier's minion target
 def find_soldier_minion_target(game):
-	soldier_affect_range = 650.0
-	soldier_radius = 325.0
 	min_health = 9999999999
 	soldier_target = None
 	for minion in game.minions:
@@ -124,6 +125,7 @@ def champ_near_obj(game, champ):
 def get_target(game, last_hit_prio):
 	global auto_last_hit
 	global target
+	global special_orbwalk_champs
 
 	atk_range = game.player.base_atk_range + game.player.gameplay_radius
 
@@ -138,26 +140,30 @@ def get_target(game, last_hit_prio):
 					if champ_near_obj(game, champ):
 						target = targeting.get_target(game, atk_range)
 		else:
-			target = None
-			
+			target = None		
 	elif not last_hit_prio:
 		target = targeting.get_target(game, atk_range)
 
 	if not target and auto_last_hit:
-		soldier = skills.is_soldier_alive(game)
+		if game.player.name in special_orbwalk_champs:
+			if game.player.name == "azir":
+				soldier = skills.is_soldier_alive(game)
 
-		#only need to know if > 0 soldiers are up
-		if soldier is not None:
-			target = find_soldier_minion_target(game)
-	
+				#only need to know if > 0 soldiers are up
+				if soldier is not None:
+					target = find_soldier_minion_target(game)
+			elif game.player.name == "cassiopeia":
+				target = find_minion_target(game, 711.0)
+
 		if not target:
-			target = find_minion_target(game)
+			target = find_minion_target(game, game.player.base_atk_range + game.player.gameplay_radius)
 
-	if not target and last_hit_prio:
-		target = targeting.get_target(game, atk_range)
+	#Unused for now, only use V for last hitting, don't expect V to harass champs
+	# if not target and last_hit_prio:
+	# 	target = targeting.get_target(game, atk_range)
 	
 	return target
-
+				
 def draw_rect(game, start_pos, end_pos, radius, color):
 	
 	dir = Vec3(end_pos.x - start_pos.x, 0, end_pos.z - start_pos.z).normalize()
@@ -189,13 +195,41 @@ def draw(game, obj, radius, show_circle_world, show_circle_map, icon):
 		p = game.world_to_minimap(obj.pos)
 		game.draw_circle(game.world_to_minimap(obj.pos), game.distance_to_minimap(radius), 15, 2, Color.RED)
 
+def cassQ(game, target):
+	global last_attacked
+
+	skill = getattr(game.player, 'Q')
+
+	cast_point = skills.castpoint_for_collision(game, skill, game.player, target)
+	if cast_point and game.distance(game.player, target) < 850.0:
+		cast_point = game.world_to_screen(cast_point)
+		cursor_pos = game.get_cursor()
+		game.move_cursor(cast_point)
+		skill.trigger()
+		time.sleep(0.01)
+		game.move_cursor(cursor_pos)
+
+def cassE(game, target):
+	global last_attacked
+
+	skill = getattr(game.player, 'E')
+
+	if game.distance(game.player, target) < 711.0:
+		cast_point = game.world_to_screen(target.pos)
+		cursor_pos = game.get_cursor()
+		game.move_cursor(cast_point)
+		skill.trigger()
+		time.sleep(0.01)
+		game.move_cursor(cursor_pos)
+
 
 def lview_update(game, ui):
-	global last_attacked, alternate, last_moved
+	global last_attacked, last_cass_q, alternate, last_moved
 	global key_attack_move, key_orbwalk, key_lasthit, max_atk_speed
 	global toggle_mode, toggled
 	global target
-	
+	global special_orbwalk_champs
+
 	if toggle_mode:
 		if game.was_key_pressed(key_orbwalk):
 			toggled = not toggled
@@ -209,33 +243,54 @@ def lview_update(game, ui):
 	if game.is_key_down(key_lasthit):
 		last_hit_priority = True
 
-	#Use if you need to prevent orbwalker from interrupting your key presses:
-	# for key in key_whitelist.items():
-	# 	if game.was_key_pressed(key):
-	# 		last_attacked = time.time()
-
-	#Handle basic attacks
-	self = game.player
-	atk_speed = self.base_atk_speed * self.atk_speed_multi
-	b_windup_time = ((1.0/self.base_atk_speed)*game.player.basic_atk_windup)
-	c_atk_time = (1.0/atk_speed)
-	max_atk_time = 1.0/max_atk_speed
-
 	#Show orbwalk target
 	if target is not None:
 		game.draw_circle_world(target.pos, 24.0, 16, 3, Color.WHITE)
 
-	target = get_target(game, last_hit_priority)
+	#Use if you need to prevent orbwalker from interrupting your key presses:
+	# for key in key_whitelist.items():
+	# 	if game.was_key_pressed(key):
+	#		last_attacked = time.time()
+
+	self = game.player
+	#Handle basic attacks
+	atk_speed = self.base_atk_speed * self.atk_speed_multi
+	b_windup_time = ((1.0/self.base_atk_speed)*game.player.basic_atk_windup)
+	c_atk_time = (1.0/atk_speed)
+	max_atk_time = 1.0/max_atk_speed
 	t = time.time()
-	if t - last_attacked > max(c_atk_time, max_atk_time) and target:
-		last_attacked = t
+	soldier_hitting = False
+
+	#NEWWY DEWWY
+	target = get_target(game, last_hit_priority)
+	
+	if game.player.name in special_orbwalk_champs:
+		if game.player.name == "azir":
+			if target:
+				soldier = skills.soldier_near_obj(game, target)
+				if soldier is not None:
+					soldier_hitting = True
+		elif game.player.name == "cassiopeia":
+			if target:
+				skillQ = getattr(game.player, 'Q')
+				skillE = getattr(game.player, 'E')
+				abilityHastePercent = (100 - 100/((1/100)*game.player.ability_haste + 1))/100
+
+				if t - last_cass_q >= (3.50 - (3.50 * abilityHastePercent)) and skillQ.get_current_cooldown(game.time) == 0 and game.player.mana > (50.0 + (10 * (skillQ.level-1))) and target and target.has_tags(UnitTag.Unit_Champion) and game.distance(game.player, target) < 850.0:
+					last_cass_q = t
+					cassQ(game, target) 
+				if t - last_attacked >= (0.75 - (0.75 * abilityHastePercent)) and skillE.get_current_cooldown(game.time) == 0 and game.player.mana > 50.0 and target and game.distance(game.player, target) < 711.0:
+					last_attacked = t
+					cassE(game, target)
 		
-		#Don't use press_key if you can avoid it, configure your ingame settings to support attack move on left click
-		#game.press_key(key_attack_move)
-		game.click_at(True, game.world_to_screen(target.pos))
-	else:
-		dt = t - last_attacked
-		if dt > b_windup_time and t - last_moved > 0.15:
-			last_moved = t
-			game.press_right_click()
-			
+	if t - last_attacked >= max(c_atk_time, max_atk_time) and target and ((game.distance(game.player, target) < self.base_atk_range + self.gameplay_radius - target.gameplay_radius) or soldier_hitting):
+		last_attacked = t
+		cast_point = game.world_to_screen(target.pos)
+		cursor_pos = game.get_cursor()
+		game.move_cursor(cast_point)
+		game.press_right_click()
+		time.sleep(0.01)
+		game.move_cursor(cursor_pos)
+	elif t - last_attacked >= b_windup_time and t - last_moved > 0.08:
+		last_moved = t
+		game.press_right_click()

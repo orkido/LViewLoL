@@ -5,14 +5,14 @@ Offsets::Offsets() {};
 int Offsets::GameTime = 0x02f6d134; //			11.6 ==> 11.7
 int Offsets::GameVersion = 0x2F872D8; //		11.6 ==> 11.7
 
-int Offsets::ViewProjMatrices = 0x02f97ff0; //	11.6 ==> 11.7
-int Offsets::Renderer = 0x02f9add0; //			11.6 ==> 11.7
+int Offsets::ViewProjMatrices = 0x2f97ff0; //	11.6 ==> 11.7
+int Offsets::Renderer = 0x2f9add0; //			11.6 ==> 11.7
 int Offsets::RendererWidth = 0x0C; //			11.6 ==> 11.7
 int Offsets::RendererHeight = 0x10; //			11.6 ==> 11.7
 
-int Offsets::ObjectManager = 0x016d85b8; //		11.6 ==> 11.7
-int Offsets::LocalPlayer = 0x02f7513c; //		11.6 ==> 11.7
-int Offsets::UnderMouseObject = 0x2346840; //	11.6 ==> 11.7
+int Offsets::ObjectManager = 0x16d85b8; //		11.6 ==> 11.7
+int Offsets::LocalPlayer = 0x2f7513c; //		11.6 ==> 11.7
+int Offsets::UnderMouseObject = 0x2326780; //	11.6 ==> 11.7
 
 int Offsets::Chat = 0x02f75208;
 int Offsets::ChatIsOpen = 0x650;
@@ -89,7 +89,7 @@ int Offsets::ObjectMapRoot = 0x28;
 int Offsets::ObjectMapNodeNetId = 0x10;
 int Offsets::ObjectMapNodeObject = 0x14;
 
-int Offsets::MinimapObject = 0x02f74b38; //		11.6 ==> 11.7
+int Offsets::MinimapObject = 0x2f74b38; //		11.6 ==> 11.7
 int Offsets::MinimapObjectHud = 0x88;
 int Offsets::MinimapHudPos = 0x60;
 int Offsets::MinimapHudSize = 0x68;
