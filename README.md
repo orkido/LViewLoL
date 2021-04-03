@@ -2,8 +2,8 @@
 These are the settings I find help LView operate the most accurately. If you're having issues with LView misclicking or orbwalker missing last hits, please make sure you've done the following first:
 - Set attack move to on cursor in game settings
 - Set auto attack off in game settings
-- Checkbox the option to bind autoattack to left click in game settings
-- Bind target champions only to space bar and V key for primary and secondary keybind (for both orbwalk modes) and make sure it's not set to toggle in game settings
+- ~~Checkbox the option to bind autoattack to left click in game settings~~
+- ~~Bind target champions only to space bar and V key for primary and secondary keybind (for both orbwalk modes) and make sure it's not set to toggle in game settings~~
 
 # Fork Details
 !!! IMPORTANT !!! This uses VS2019 and the mvc142 toolkit, please be sure your environment matches this configuration before attempting to build, and ofcourse you will still need to follow the steps outlined for the original project. Orkido on UC has documented much of what you need to do in order to get the project building from VS2019 so if you have trouble please search the LView thread for his comments on the matter.
